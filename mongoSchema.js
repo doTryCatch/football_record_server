@@ -13,6 +13,6 @@ const footballTeamSchema = new mongoose.Schema({
   Year: { type: Number, required: true },
 });
 
-const FootballDataModel = mongoose.model('footballData', footballTeamSchema);
+const FootballDataModel = mongoose.model('FootballDataModel', footballTeamSchema);
 
 module.exports = FootballDataModel;

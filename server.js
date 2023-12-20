@@ -7,12 +7,14 @@ const cors=require("cors")
 const PORT=process.env.PORT||3002
 // **********************************8
 const FootballDataModel=require("./mongoSchema")
-const url = "mongodb+srv://Raone:roshan12@cluster0.muoib0h.mongodb.net/";
+// const url = "mongodb+srv://Raone:roshan12@cluster0.muoib0h.mongodb.net/";
+const url = "mongodb://127.0.0.1:27017";
+
 
 
 
 // Connect to MongoDB Atlas
-mongoose.connect(url + 'FOOTBALL_DATA_SET', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(url + '/FOOTBALL_RECORD_SET', { useNewUrlParser: true, useUnifiedTopology: true });
 
 
 
@@ -49,9 +51,12 @@ app.route("/")
         input=req.query.input
     }
     try {
+       
         let result = await FootballDataModel.find();
+      
 
         if (!result || result.length === 0) {
+            console.log("empty")
             try {
                 await new Promise((resolve, reject) => {
                     fs.createReadStream('FootbalCSV.csv')
@@ -78,9 +83,9 @@ app.route("/")
                         });
                 });
             } catch (err) {
-                console.log(err);
+                console.error("csv data is failed to insert in database",err);
                 res.status(500).json({ "message": "Internal server error" });
-                return;
+                return; 
             }
         }
 
@@ -117,7 +122,7 @@ app.route("/")
        
         res.status(200).json(result);
     } catch (error) {
-        console.error(error);
+        console.error("nothing happened");
         res.status(500).json({ "message": "Internal server error" });
     }
 
