@@ -4,13 +4,14 @@ const csv = require('csv-parser');
 const cors=require("cors")
 const mongoose = require('mongoose');
 const app=express()
-
 const PORT=3001
-
 const DataModel=require("./Schema")
+
 const databse='/FOOTBALL_RECORD_SET'
 const url = "mongodb://127.0.0.1:27017";
-mongoose.connect(url + databse,{ useNewUrlParser: true, useUnifiedTopology: true });
+const options={ useNewUrlParser: true, useUnifiedTopology: true }
+// mogoose
+mongoose.connect(url + databse,options);
 app.use(cors())
 app.use(express.json())
 // get request handler
@@ -122,6 +123,7 @@ app.post("/",async(req,res)=>{
 // update request handler
 app.put("/",async(req,res)=>{
     const {data}=req.body;
+    console.log(data)
     try{
         const Res = await DataModel.updateOne({Team:data.team,Year:parseInt(data.year) }, { $set: {[data.field]:parseInt(data.newValue)} });
      if( Res.matchedCount > 0){
