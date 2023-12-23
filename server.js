@@ -1,23 +1,20 @@
-const mongoose = require('mongoose');
+const express=require('express')
 const fs = require('fs');
 const csv = require('csv-parser');
-const express=require('express')
-const app=express()
 const cors=require("cors")
+const mongoose = require('mongoose');
+const app=express()
+
 const PORT=3001
 
 const DataModel=require("./Schema")
 const databse='/FOOTBALL_RECORD_SET'
 const url = "mongodb://127.0.0.1:27017";
 mongoose.connect(url + databse,{ useNewUrlParser: true, useUnifiedTopology: true });
-
-// ******************************8
 app.use(cors())
 app.use(express.json())
-
-
-app.route("/")
-.get(async (req,res)=>{
+// get request handler
+app.get("/",async(req,res)=>{
     let  mode,input;
     if(req.query.mode&& req.query.input){
         mode=req.query.mode
@@ -26,11 +23,7 @@ app.route("/")
     try {
        
         let Res = await DataModel.find();
-      
-
         if ( Res.length === 0) {
-        
-            try {
                 await new Promise((resolve, reject) => {
                     fs.createReadStream('FootbalCSV.csv')
                         .pipe(csv())
@@ -48,20 +41,15 @@ app.route("/")
                             await footballData.save();
                         })
                         .on('end', () => {
-                            console.log('CSV file successfully saved');
                             resolve();
                         })
                         .on('error', (error) => {
                             reject(error);
                         });
                 });
-            } catch (err) {
-                console.error("csv data is failed to insert in database",err);
-                res.status(500).json({ "message": "Internal server error" });
-                return; 
-            }
+            
         }
-
+        
         Res = await DataModel.find();
         if(mode=="WDL"){
             Res=Res.filter((data)=> data['Year']>parseInt(input))
@@ -74,8 +62,6 @@ app.route("/")
                 { GamesPlayed: 0, Win: 0, Draw: 0 }
               );
             
-              
-              // Assign the calculated values back to the 'Res' object if needed
               Res = [{ GamesPlayed, Win, Draw ,Year:input}];
 
         }else if(mode=="FTR"){
@@ -95,18 +81,19 @@ app.route("/")
                 ...{AverageGoalFor: (data['GoalsFor'] / data['GamesPlayed']).toFixed(2)}
               }));
         }
-       console.log(Res)
-       
+     
         res.status(200).json(Res);
     } catch (error) {
 
         res.status(500).json({ "message": "Internal server error" });
     }
 
-}).post(async(req,res)=>{
+}) 
+//post request handler
+app.post("/",async(req,res)=>{
    
     const data=req.body;
-    console.log(data)
+    // console.log(data)
     try {
         const footballData = new DataModel({
             "Team": data.team,
@@ -131,7 +118,9 @@ app.route("/")
     
         res.status(500).json({ error: 'Internal Server Error' });
     }
-}).put(async(req,res)=>{
+}) 
+// update request handler
+app.put("/",async(req,res)=>{
     const {data}=req.body;
     try{
         const Res = await DataModel.updateOne({Team:data.team,Year:parseInt(data.year) }, { $set: {[data.field]:parseInt(data.newValue)} });
@@ -151,7 +140,9 @@ app.route("/")
    
 
 
-}).delete(async(req,res)=>{
+}) 
+//delete request handler
+app.delete("/",async(req,res)=>{
     const {team,year}=req.body;
     console.log({team,year})
     try{
