@@ -1,17 +1,17 @@
+const DataModel=require("./Schema")
+require("./connectWithMongoose")
 const express=require('express')
+
 const fs = require('fs');
 const csv = require('csv-parser');
 const cors=require("cors")
-const mongoose = require('mongoose');
+
 const app=express()
 const PORT=3001
-const DataModel=require("./Schema")
 
-const databse='/FOOTBALL_RECORD_SET'
-const url = "mongodb://127.0.0.1:27017";
-const options={ useNewUrlParser: true, useUnifiedTopology: true }
-// mogoose
-mongoose.connect(url + databse,options);
+
+
+
 app.use(cors())
 app.use(express.json())
 // get request handler
@@ -21,8 +21,9 @@ app.get("/",async(req,res)=>{
         mode=req.query.mode
         input=req.query.input
     }
+    console.log(mode,input)
     try {
-       
+        
         let Res = await DataModel.find();
         if ( Res.length === 0) {
                 await new Promise((resolve, reject) => {
@@ -52,7 +53,7 @@ app.get("/",async(req,res)=>{
         }
         
         Res = await DataModel.find();
-        if(mode=="WDL"){
+        if(mode=="WinDrawLoss"){
             Res=Res.filter((data)=> data['Year']>parseInt(input))
             const { GamesPlayed, Win, Draw } = Res.reduce(
                 (accumulator, data) => ({
@@ -64,18 +65,20 @@ app.get("/",async(req,res)=>{
               );
             
               Res = [{ GamesPlayed, Win, Draw ,Year:input}];
+              console.log(Res)
 
-        }else if(mode=="FTR"){
+        }else if(mode=="TopTenRecord"){
             Res=Res.filter((data)=> data['Win']>parseInt(input))
             if(Res.length>10){
                 Res=Res.splice(0,10)
             }
+            console.log(Res)
             
            
           
 
     
-        }else if(mode=="AGF"){
+        }else if(mode=="averageGoalFor"){
             Res=Res.filter((data)=> data['Year']===parseInt(input))
             Res = Res.map((data) => ({
                 ...data._doc,
